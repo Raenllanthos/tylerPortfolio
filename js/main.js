@@ -1,8 +1,8 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js';
+import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/FBXLoader.js';
 
-import {FBXLoader} from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/FBXLoader.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js';
 
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js';
 
 class BasicCharacterControllerProxy {
     constructor(animations) {
@@ -23,6 +23,7 @@ class BasicCharacterController {
         this._params = params;
         this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
         this._acceleration = new THREE.Vector3(1, 0.25, 50.0);
+        this._velocity = new THREE.Vector3(0,0,0);
         this._animations = {};
         this._input = new BasicCharacterControllerInput();
         this._stateMachine = new CharacterFSM(
@@ -273,7 +274,7 @@ class JumpState extends State {
     Enter(prevState) {
         const currentAction = this._parent._proxy._animations['jump'].action;
         const mixer = currentAction.getMixer();
-        mixer.addEventListenener("finished", this._FinishedCallback);
+        mixer.addEventListener("finished", this._FinishedCallback);
 
         if (prevState) {
             const prevAction = this._parent._proxy._animations[prevState.Name].action;
@@ -316,7 +317,7 @@ class WalkingState extends State {
     Enter(prevState) {
         const currentAction = this._parent._proxy._animations['walking'].action;
         if (prevState) {
-            const prevAction = this._parent._proxy.animations[prevState.Name].action;
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
             currentAction.enabled = true;
             if (prevState.Name == "running") {
                 const ratio = currentAction.getClip().duration / prevAction.getClip().duration;
@@ -358,7 +359,7 @@ class RunningState extends State {
     Enter(prevState) {
         const currentAction = this._parent._proxy._animations['running'].action;
         if (prevState) {
-            const prevAction = this._parent._proxy.animations[prevState.Name].action;
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
             currentAction.enabled = true;
             if (prevState.Name == 'walking') {
                 const ratio = currentAction.getClip().duration / prevAction.getClip().duration;
@@ -400,7 +401,7 @@ class IdleState extends State {
     Enter(prevState) {
         const idleAction = this._parent._proxy._animations['idle'].action;
         if (prevState) {
-            const prevAction = this._parent._proxy.animations[prevState.Name].action;
+            const prevAction = this._parent._proxy._animations[prevState.Name].action;
             idleAction.time = 0.0;
             idleAction.enabled = true;
             idleAction.setEffectiveTimeScale(1.0);
